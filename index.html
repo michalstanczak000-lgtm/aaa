@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yaroi Points Progresja - Mines</title>
+    <style>
+        :root {
+            --bg-color: #0f0f1e;
+            --panel-bg: #18182e;
+            --accent-yellow: #dca525;
+            --accent-blue: #2d60ff;
+            --text-color: #b3b5ca;
+            --button-inactive: #212140;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* EKRAN TYTUŁOWY */
+        #welcome-screen {
+            text-align: center;
+            background: var(--panel-bg);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        #welcome-screen h1 {
+            color: var(--accent-yellow);
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        #welcome-screen p {
+            color: var(--text-color);
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .start-btn {
+            background: linear-gradient(135deg, #f1c40f, #d4ac0d);
+            color: #000;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            text-transform: uppercase;
+        }
+
+        .start-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(212, 172, 13, 0.4);
+        }
+
+        /* GŁÓWNY PANEL GRY */
+        #game-container {
+            display: none;
+            max-width: 1100px;
+            width: 100%;
+            grid-template-columns: 350px 1fr;
+            gap: 20px;
+        }
+
+        .sidebar {
+            background-color: var(--panel-bg);
+            padding: 20px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            background: #111122;
+            padding: 4px;
+            border-radius: 8px;
+        }
+
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            color: var(--text-color);
+        }
+
+        .tab.active {
+            background: var(--button-inactive);
+            color: #fff;
+        }
+
+        .label {
+            font-size: 13px;
+            color: #656680;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .input-box {
+            background: #111122;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            padding: 10px;
+        }
+
+        .input-box input {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            width: 100%;
+            outline: none;
+        }
+
+        /* Przyciski szybkiego wyboru min */
+        .mines-buttons {
+            display: flex;
+            gap: 5px;
+            margin-top: 8px;
+        }
+
+        .mine-btn {
+            background: var(--button-inactive);
+            border: none;
+            color: var(--text-color);
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .mine-btn.selected {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        /* Suwak rozmiaru siatki */
+        .range-container {
+            margin-top: 10px;
+        }
+
+        .range-slider {
+            width: 100%;
+            -webkit-appearance: none;
+            background: #111122;
+            height: 6px;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+            border: 2px solid var(--accent-blue);
+        }
+
+        .range-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            font-size: 11px;
+            color: #656680;
+        }
+
+        .action-btn {
+            background: linear-gradient(180deg, #e5b22d, #b88612);
+            color: #000;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: auto;
+            text-transform: uppercase;
+        }
+
+        /* PLANSZA Z KAFELKAMI */
+        .board-wrapper {
+            background-color: var(--panel-bg);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            position: relative;
+        }
+
+        .grid {
+            display: grid;
+            gap: 10px;
+            max-width: 500px;
+            width: 100%;
+            aspect-ratio: 1/1;
+        }
+
+        .tile {
+            background: #212140;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background 0.2s, transform 0.1s;
+            position: relative;
+        }
+
+        .tile:hover {
+            background: #2a2a54;
+        }
+
+        /* Ikona korony/logo na zakrytym kafelku */
+        .tile::before {
+            content: "👑";
+            opacity: 0.15;
+            font-size: 20px;
+        }
+
+        .tile.revealed-gem {
+            background: #2d60ff;
+        }
+        .tile.revealed-gem::before { content: "💎"; opacity: 1; }
+
+        .tile.revealed-mine {
+            background: #e74c3c;
+        }
+        .tile.revealed-mine::before { content: "💣"; opacity: 1; }
+
+        .tile.disabled {
+            pointer-events: none;
+        }
+
+        .top-stats {
+            position: absolute;
+            top: 15px;
+            right: 25px;
+            color: #656680;
+            font-size: 14px;
+        }
+
+        .max-profit-bar {
+            margin-top: 25px;
+            color: #656680;
+            font-size: 13px;
+        }
+
+        /* STATYSTYKI PROGRESSU NA GÓRZE */
+        .global-status {
+            grid-column: 1 / span 2;
+            background: #212140;
+            padding: 12px 20px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="welcome-screen">
+        <h1>YAROI PROGRESSION SYSTEM</h1>
+        <p>Rozpoczynasz wyzwanie. Twój cel to ukończenie 4 gier bez możliwości powrotu. <br><br>
+           <strong>Gra 1: MINES</strong><br>
+           Wymagany cel: 500 Yaroi Points | Min. stawka: 10
+        </p>
+        <button class="start-btn" onclick="startGame()">Uruchom MINES</button>
+    </div>
+
+    <div id="game-container">
+        
+        <div class="global-status">
+            <span>ETAP: MINES (Cel: 500)</span>
+            <span style="color: #4caf50;" id="yaroi-balance">Portfel: 0 YAROI</span>
+        </div>
+
+        <div class="sidebar">
+            <div class="tabs">
+                <div class="tab active">Manual</div>
+                <div class="tab">Auto</div>
+            </div>
+
+            <div>
+                <div class="label">Mines</div>
+                <div class="input-box">
+                    <input type="number" id="mines-count" value="3" min="1" max="24">
+                </div>
+                <div class="mines-buttons">
+                    <button class="mine-btn" onclick="setMines(1)">1</button>
+                    <button class="mine-btn selected" id="btn-3" onclick="setMines(3)">3</button>
+                    <button class="mine-btn" onclick="setMines(5)">5</button>
+                    <button class="mine-btn" onclick="setMines(10)">10</button>
+                    <button class="mine-btn" onclick="setMines(15)">15</button>
+                    <button class="mine-btn" onclick="setMines(20)">20</button>
+                </div>
+            </div>
+
+            <div>
+                <div class="label">Play amount</div>
+                <div class="input-box">
+                    <span style="color:var(--accent-yellow); margin-right: 8px;">🪙</span>
+                    <input type="number" id="bet-amount" value="50">
+                </div>
+            </div>
+
+            <div>
+                <div class="label">Grid Size <span id="grid-size-display">5x5</span></div>
+                <div class="range-container">
+                    <input type="range" id="grid-range" class="range-slider" min="2" max="10" value="5" oninput="updateGridLabel(this.value)">
+                    <div class="range-labels">
+                        <span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="label" style="margin-top:10px;">
+                Total earnings
+                <div id="earnings-display" style="font-size:18px; color:#4caf50; font-weight:bold; margin-top:5px;">0.00 YAROI</div>
+            </div>
+
+            <button class="action-btn" id="main-action-btn" onclick="handleMainAction()">Start new game</button>
+        </div>
+
+        <div class="board-wrapper">
+            <div class="top-stats">Fairness | ? | Live Stats</div>
+            
+            <div class="grid" id="mines-grid">
+                </div>
+
+            <div class="max-profit-bar">
+                Max profit: 🪙 5,000,000
+            </div>
+        </div>
+
+    </div>
+
+<script>
+    let yaroiPoints = 0;
+    let currentGridSize = 5;
+    let minesCount = 3;
+    let currentBet = 50;
+    let gameActive = false;
+    let minePositions = [];
+    let currentSessionProfit = 0;
+
+    // Przejście z ekranu tytułowego do gry
+    function startGame() {
+        document.getElementById('welcome-screen').style.display = 'none';
+        document.getElementById('game-container').style.display = 'grid';
+        buildGrid();
+    }
+
+    // Ustawianie szybkiej ilości min z przycisków
+    function setMines(count) {
+        if(gameActive) return;
+        document.getElementById('mines-count').value = count;
+        minesCount = count;
+        
+        document.querySelectorAll('.mine-btn').forEach(btn => btn.classList.remove('selected'));
+        event.target.classList.add('selected');
+    }
+
+    // Aktualizacja tekstu suwaka rozmiaru planszy
+    function updateGridLabel(value) {
+        if(gameActive) {
+            document.getElementById('grid-range').value = currentGridSize; // Zablokuj zmianę w trakcie gry
+            return;
+        }
+        currentGridSize = parseInt(value);
+        document.getElementById('grid-size-display').innerText = `${value}x5`; // Format wizualny ze zdjęcia
+        buildGrid();
+    }
+
+    // Budowanie planszy kafli na podstawie wybranego Grid Size
+    function buildGrid() {
+        const gridContainer = document.getElementById('mines-grid');
+        gridContainer.innerHTML = '';
+        gridContainer.style.gridTemplateColumns = `repeat(${currentGridSize}, 1fr)`;
+
+        const totalTiles = currentGridSize * currentGridSize;
+        for (let i = 0; i < totalTiles; i++) {
+            const tile = document.createElement('div');
+            tile.classList.add('tile', 'disabled');
+            tile.dataset.index = i;
+            tile.addEventListener('click', () => clickTile(i));
+            gridContainer.appendChild(tile);
+        }
+    }
+
+    // Obsługa kliknięcia dużego przycisku "Start new game / Cashout"
+    function handleMainAction() {
+        const actionBtn = document.getElementById('main-action-btn');
+        const betInput = document.getElementById('bet-amount');
+        const minesInput = document.getElementById('mines-count');
+
+        if (!gameActive) {
+            // Walidacja warunku minimalnej stawki dla MINES (Z Twoich wymagań: min. 10)
+            let bet = parseInt(betInput.value) || 0;
+            if (bet < 10) {
+                alert("Minimalna stawka dla MINES to 10 YAROI POINTS!");
+                betInput.value = 10;
+                return;
+            }
+
+            minesCount = parseInt(minesInput.value) || 3;
+            const totalTiles = currentGridSize * currentGridSize;
+            if(minesCount >= totalTiles || minesCount < 1) {
+                alert(`Liczba min musi być między 1 a ${totalTiles - 1}`);
+                return;
+            }
+
+            // Rozpoczęcie gry
+            currentBet = bet;
+            gameActive = true;
+            currentSessionProfit = 0;
+            actionBtn.innerText = "Cashout";
+            actionBtn.style.background = "linear-gradient(180deg, #2d60ff, #1a40b3)";
+            actionBtn.style.color = "#fff";
+            
+            // Losowanie pozycji min
+            minePositions = [];
+            while(minePositions.length < minesCount) {
+                let r = Math.floor(Math.random() * totalTiles);
+                if(!minePositions.includes(r)) minePositions.push(r);
+            }
+
+            // Odblokowanie kafli do klikania
+            document.querySelectorAll('.tile').forEach(tile => {
+                tile.className = 'tile';
+            });
+        } else {
+            // Cashout bezpieczny
+            cashoutGame();
+        }
+    }
+
+    // Kliknięcie w kafelek na planszy
+    function clickTile(index) {
+        if(!gameActive) return;
+        const tile = document.querySelector(`[data-index='${index}']`);
+        if(tile.classList.contains('revealed-gem') || tile.classList.contains('revealed-mine')) return;
+
+        if (minePositions.includes(index)) {
+            // Trafiono minę - PRZEGRANA
+            tile.classList.add('revealed-mine');
+            endGame(false);
+        } else {
+            // Trafiono kryształ - WYGRANA rundy
+            tile.classList.add('revealed-gem');
+            // Prosty algorytm mnożnika zależny od liczby min
+            currentSessionProfit += Math.floor(currentBet * (minesCount / currentGridSize) * 1.2);
+            document.getElementById('earnings-display').innerText = `${currentSessionProfit} YAROI`;
+        }
+    }
+
+    function cashoutGame() {
+        yaroiPoints += currentSessionProfit;
+        alert(`Pomyślny Cashout! Zyskałeś ${currentSessionProfit} Yaroi Points.`);
+        endGame(true);
+    }
+
+    function endGame(isWin) {
+        gameActive = false;
+        const actionBtn = document.getElementById('main-action-btn');
+        actionBtn.innerText = "Start new game";
+        actionBtn.style.background = "linear-gradient(180deg, #e5b22d, #b88612)";
+        actionBtn.style.color = "#000";
+
+        if(!isWin) {
+            yaroiPoints -= currentBet;
+            alert("BUM! Trafiłeś na minę. Tracisz stawkę.");
+        }
+
+        // Pokazanie wszystkich min na koniec gry
+        minePositions.forEach(pos => {
+            const tile = document.querySelector(`[data-index='${pos}']`);
+            if(tile) tile.classList.add('revealed-mine');
+        });
+
+        // Blokada kafli
+        document.querySelectorAll('.tile').forEach(tile => tile.classList.add('disabled'));
+
+        // Aktualizacja portfela globalnego
+        document.getElementById('yaroi-balance').innerText = `Portfel: ${yaroiPoints} YAROI`;
+        document.getElementById('earnings-display').innerText = `0.00 YAROI`;
+
+        // SPRAWDZENIE GLOBALNEGO WARUNKU AWANSU (Cel dla Mines = 500)
+        if(yaroiPoints >= 500) {
+            alert("🎉 Osiągnąłeś 500 punktów w MINES! Awansujesz do PLINKO. ZAKAZ COFANIA!");
+            // Tutaj w przyszłości następuje przekierowanie do plinka / zmiana ekranu
+        }
+    }
+</script>
+
+</body>
+</html>
